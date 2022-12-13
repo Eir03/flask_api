@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from Backend.Models import UserModel
+from Backend.Models import *
 from Backend.Config import full_url
 
 connection = full_url
@@ -23,7 +23,7 @@ class Query:
     def add_user(self, request_data) -> UserModel:
         try:
             user = UserModel(**request_data)
-            if session.query(UserModel).filter(UserModel.name == user.name).count() == 0:
+            if session.query(UserModel).filter(UserModel.login == user.login).count() == 0:
                 session.add(user)
                 session.flush()
                 session.commit()
@@ -35,9 +35,34 @@ class Query:
         try:
             user = UserModel(**request_data)
             data = session.query(UserModel).filter(
-                UserModel.name == user.name and
-                UserModel.password == user.password
-                ).first()
+                UserModel.login == user.login and
+                UserModel.password == user.password).first()
+            return data
+        except Exception as ex:
+            return ex
+
+    def get_posts(self) -> list[PostModel]:
+        try:
+            data = session.query(PostModel).all()
+            return data
+        except Exception as ex:
+            return ex
+
+    def add_post(self, request_data) -> PostModel:
+        try:
+            post = PostModel(**request_data)
+            session.add(post)
+            session.flush()
+            session.commit()
+            return post
+        except Exception as ex:
+            return ex
+    
+    def get_post(self, request_data) -> PostModel:
+        try:
+            post = PostModel(**request_data)
+            data = session.query(UserModel).filter(
+                PostModel.id == post.id).first()
             return data
         except Exception as ex:
             return ex

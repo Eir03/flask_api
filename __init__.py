@@ -1,15 +1,10 @@
 from flask import Flask, jsonify, request
 from Backend.Query import Query
-from Backend.Models import UserModel
-from flask_jwt_extended import JWTManager
-from Backend.Config import secret_key
+from Backend.Models import *
 
 app = Flask(__name__)
 
 query = Query()
-
-app.config["JWT_SECRET_KEY"] = secret_key
-jwt = JWTManager(app)
 
 @app.route("/users", methods=['GET'])
 def get_users():
@@ -50,6 +45,42 @@ def get_user():
     except Exception as ex: 
         return jsonify({"message":str(ex)}), 400
 
+@app.route("/posts", methods=['GET'])
+def get_posts():
+    try:
+        data = []
+        query_data = query.get_posts()
+        if type(query_data) == list:
+            for item in query_data:
+                data.append(item.as_dict())
+            return jsonify(data), 200
+        else:
+            return jsonify({"message":"Error in request"}), 400
+    except Exception as ex: 
+        return jsonify({"message":str(ex)}), 400
+
+@app.route("/posts", methods=['POST'])
+def add_post():
+    try:
+        query_data = query.add_post(request.get_json())
+        if type(query_data) == PostModel:
+            return jsonify(query_data.as_dict()), 201
+        else:
+            return jsonify({"message":"Error in request"}), 400
+    except Exception as ex: 
+        return jsonify({"message":str(ex)}), 400
+
+@app.route("/post", methods=['POST'])
+def get_post():
+    try:
+        query_data = query.get_post(request.get_json())
+        if type(query_data) == PostModel:
+            query_data.password = None
+            return jsonify(query_data.as_dict()), 201
+        else:
+            return jsonify({"message":"Error in request"}), 400
+    except Exception as ex: 
+        return jsonify({"message":str(ex)}), 400
 #Обязательно в самом конце
 #Запуск программы
 if __name__ == '__main__':
